@@ -3,6 +3,13 @@
 **Research question.** Can we identify which inputs a classifier is likely to get wrong, and do
 models with similar clean accuracy behave differently when the input distribution changes?
 
+# BlindSpot
+
+**Live Demo:** [Open BlindSpot Dashboard](https://blindspot-yashi.streamlit.app/)
+
+BlindSpot is a machine learning research dashboard for exploring model performance, calibration, prediction failures, and data shift.
+
+
 ## Quick start
 ```bash
 pip install -r requirements.txt
