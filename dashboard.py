@@ -9,6 +9,111 @@ st.subheader("Predicting and explaining machine-learning failure under distribut
 st.caption("Research dashboard: inspect results only after running the experiments and analysis.")
 
 st.markdown("---")
+st.header("Built-in Dataset Explorer")
+
+dataset_choice = st.selectbox(
+    "Choose a dataset to preview",
+    options=["adult", "synthetic"],
+    format_func=lambda x: {
+        "adult": "Adult Census Income",
+        "synthetic": "Synthetic Dataset"
+    }[x],
+    key="builtin_dataset_choice"
+)
+
+if st.button("Preview Selected Dataset"):
+    from blindspot.data import load
+
+    with st.spinner("Loading dataset..."):
+        X_preview, y_preview, shifted_preview = load(
+            dataset_choice,
+            max_rows=6000
+        )
+
+    preview_df = X_preview.copy()
+    preview_df["target"] = y_preview
+    preview_df["predefined_shift_group"] = shifted_preview
+
+    st.success(f"{dataset_choice.title()} dataset loaded successfully!")
+    st.write("Rows:", len(preview_df))
+    st.write("Feature columns:", len(X_preview.columns))
+    st.write("Target class counts:", pd.Series(y_preview).value_counts().to_dict())
+    st.write("Predefined shift-group counts:",
+             pd.Series(shifted_preview).value_counts().to_dict())
+    st.dataframe(preview_df.head(10), use_container_width=True)
+
+
+st.markdown("---")
+st.header("Run Built-in Dataset Experiment")
+
+from blindspot.data import load
+from blindspot.run import run_one
+
+builtin_model = st.selectbox(
+    "Choose a classifier for the experiment",
+    options=["logreg", "svm", "rf", "gbm"],
+    format_func=lambda x: {
+        "logreg": "Logistic Regression",
+        "svm": "Support Vector Machine",
+        "rf": "Random Forest",
+        "gbm": "Gradient Boosting"
+    }[x],
+    key="builtin_experiment_model"
+)
+
+if st.button("Run Built-in Experiment", type="primary"):
+    try:
+        X_builtin, y_builtin, shifted_builtin = load(
+            dataset_choice,
+            max_rows=6000
+        )
+
+        with st.spinner(
+            f"Running {builtin_model} experiment on {dataset_choice}..."
+        ):
+            builtin_results = run_one(
+                X_builtin,
+                y_builtin,
+                shifted_builtin,
+                builtin_model,
+                seed=42,
+                name=dataset_choice
+            )
+
+        builtin_df = pd.DataFrame(builtin_results)
+
+        results_dir = Path("results")
+        results_dir.mkdir(parents=True, exist_ok=True)
+
+        output_path = results_dir / f"{dataset_choice}_{builtin_model}_dashboard.csv"
+        builtin_df.to_csv(output_path, index=False)
+
+        st.session_state["builtin_experiment_results"] = builtin_df
+        st.session_state["builtin_experiment_dataset"] = dataset_choice
+        st.success(f"Experiment completed! Results saved to {output_path}")
+
+    except Exception as exc:
+        st.error(f"Experiment failed: {exc}")
+
+if "builtin_experiment_results" in st.session_state:
+    st.subheader(
+        f"Results: {st.session_state['builtin_experiment_dataset'].title()}"
+    )
+    st.dataframe(
+        st.session_state["builtin_experiment_results"],
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.download_button(
+        "Download built-in experiment results",
+        data=st.session_state["builtin_experiment_results"].to_csv(index=False),
+        file_name="blindspot_builtin_results.csv",
+        mime="text/csv"
+    )
+
+
+st.markdown("---")
 st.header("Custom Dataset Experiment")
 st.write("Upload a labelled CSV to evaluate a classifier under controlled data corruption.")
 
