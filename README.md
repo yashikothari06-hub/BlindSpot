@@ -46,7 +46,7 @@ selective risk at 80% coverage, area under the risk-coverage curve.
 **Statistics.** Mean over seeds, bootstrap 95% CI, paired Wilcoxon of each predictor vs the confidence
 baseline, Holm-corrected. Needs at least 5 seeds; use 10.
 
-## Known limitations (state these in the report)
+## Known limitations
 - Seeds are repeated splits of the same finite data, so they are not independent samples.
 - The failure predictors see PCA distance computed from a PCA fit on the same training rows (slightly optimistic in-sample).
 - Datasets are subsampled to `--max-rows` (default 6000) to keep SVM tractable.
